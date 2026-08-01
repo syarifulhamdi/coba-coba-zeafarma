@@ -1,0 +1,85 @@
+@import "tailwindcss";
+
+:root {
+  --radius: 0.75rem;
+
+  --background: #f9f9f7;
+  --foreground: #0b0b0b;
+
+  --card: #ffffff;
+  --card-foreground: #0b0b0b;
+
+  --popover: #ffffff;
+  --popover-foreground: #0b0b0b;
+
+  --primary: #0f766e;
+  --primary-foreground: #ffffff;
+
+  --secondary: #eef6f4;
+  --secondary-foreground: #0f766e;
+
+  --accent: #e6f4f1;
+  --accent-foreground: #0f766e;
+
+  --muted: #f1f1ee;
+  --muted-foreground: #6b6a65;
+
+  --destructive: #d03b3b;
+  --destructive-foreground: #ffffff;
+
+  --success: #0ca30c;
+  --success-foreground: #ffffff;
+
+  --border: #e5e4de;
+  --input: #e5e4de;
+  --ring: #0f766e;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+* {
+  border-color: var(--border);
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--accent-foreground);
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}

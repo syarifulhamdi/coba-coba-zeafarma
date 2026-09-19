@@ -55,7 +55,7 @@ function Metric({
   invert?: boolean;
 }) {
   return (
-    <div className="rounded-md border border-slate-200 bg-slate-50/60 px-2.5 py-1.5">
+    <div className="rounded-md border border-slate-200 bg-slate-50/60 px-3 py-2.5">
       <p className="text-[7pt] uppercase tracking-wide text-slate-500">{label}</p>
       <p className="mt-1 text-[11pt] font-semibold leading-none tabular-nums text-slate-900">{value}</p>
       <p className="mt-1 leading-none">
@@ -67,7 +67,7 @@ function Metric({
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="mb-1 border-b border-slate-300 pb-0.5 text-[7.5pt] font-bold uppercase tracking-wide text-slate-700">
+    <h2 className="mb-2 border-b border-slate-200 pb-1 text-[7.5pt] font-bold uppercase tracking-wide text-slate-700">
       {children}
     </h2>
   );
@@ -77,7 +77,7 @@ function RankedList({
   items,
   format,
   emptyLabel = "Tidak ada data",
-  max = 6,
+  max = 5,
 }: {
   items: { label: string; total: number; color: string; share: number }[];
   format: (v: number) => string;
@@ -97,14 +97,14 @@ function RankedList({
       <tbody>
         {shown.map((item) => (
           <tr key={item.label} className="border-b border-slate-100 last:border-0">
-            <td className="w-2 py-[2px] pr-1 align-middle">
+            <td className="w-2 py-[4px] pr-1 align-middle">
               <span className="block h-1.5 w-1.5 rounded-full" style={{ background: item.color }} />
             </td>
-            <td className="py-[2px] pr-1 align-middle text-slate-700">{item.label}</td>
-            <td className="py-[2px] pr-1 text-right align-middle tabular-nums font-medium text-slate-900">
+            <td className="py-[4px] pr-1 align-middle text-slate-700">{item.label}</td>
+            <td className="py-[4px] pr-1 text-right align-middle tabular-nums font-medium text-slate-900">
               {format(item.total)}
             </td>
-            <td className="w-8 py-[2px] text-right align-middle tabular-nums text-slate-500">
+            <td className="w-8 py-[4px] text-right align-middle tabular-nums text-slate-500">
               {(item.share * 100).toFixed(0)}%
             </td>
           </tr>
@@ -112,9 +112,9 @@ function RankedList({
         {rest.length > 0 && (
           <tr className="text-slate-500">
             <td />
-            <td className="py-[2px] pr-1 italic">Lainnya ({rest.length})</td>
-            <td className="py-[2px] pr-1 text-right tabular-nums">{format(restTotal)}</td>
-            <td className="py-[2px] text-right tabular-nums">{(restShare * 100).toFixed(0)}%</td>
+            <td className="py-[4px] pr-1 italic">Lainnya ({rest.length})</td>
+            <td className="py-[4px] pr-1 text-right tabular-nums">{format(restTotal)}</td>
+            <td className="py-[4px] text-right tabular-nums">{(restShare * 100).toFixed(0)}%</td>
           </tr>
         )}
       </tbody>
@@ -154,7 +154,7 @@ export function ReportSheet({ data }: { data: ReportData }) {
       {/* Fixed A4 content box (210mm − 2×10mm margins). Everything below is
           sized in points so the on-screen preview matches the printed page. */}
       <div className="mx-auto my-4 w-[190mm] bg-white p-0 text-slate-900 shadow-lg print:m-0 print:w-auto print:shadow-none">
-        <header className="flex items-start justify-between gap-4 border-b-2 border-[#0d4a7d] pb-2">
+        <header className="flex items-start justify-between gap-4 border-b-2 border-[#0d4a7d] pb-3">
           <Image src="/zea-logo.jpg" alt="ZEA Medika Farma" width={1284} height={293} className="h-8 w-auto" priority />
           <div className="text-right">
             <p className="text-[11pt] font-bold leading-tight text-[#0d4a7d]">Laporan Kinerja</p>
@@ -165,9 +165,9 @@ export function ReportSheet({ data }: { data: ReportData }) {
           </div>
         </header>
 
-        <section className="mt-2.5">
+        <section className="mt-5">
           <SectionTitle>Ringkasan Keuangan</SectionTitle>
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-4 gap-2.5">
             <Metric label="Omzet" value={formatCurrency(data.kpis.omzet.current)} comparison={data.kpis.omzet} />
             <Metric
               label="Pengeluaran"
@@ -188,9 +188,9 @@ export function ReportSheet({ data }: { data: ReportData }) {
           </div>
         </section>
 
-        <section className="mt-2.5">
+        <section className="mt-5">
           <SectionTitle>Ringkasan Kunjungan Pasien</SectionTitle>
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-4 gap-2.5">
             <Metric
               label="Total Kunjungan"
               value={formatNumber(data.visitKpis.total.current)}
@@ -214,7 +214,7 @@ export function ReportSheet({ data }: { data: ReportData }) {
           </div>
         </section>
 
-        <section className="mt-2.5 grid grid-cols-2 gap-3.5">
+        <section className="mt-5 grid grid-cols-2 gap-6">
           <div>
             <SectionTitle>Tren Keuangan (6 Bulan)</SectionTitle>
             <ResponsiveContainer width="100%" height={108}>
@@ -277,7 +277,7 @@ export function ReportSheet({ data }: { data: ReportData }) {
           </div>
         </section>
 
-        <section className="mt-2.5 grid grid-cols-2 gap-3.5">
+        <section className="mt-5 grid grid-cols-2 gap-6">
           <div>
             <SectionTitle>Omzet per Kategori</SectionTitle>
             <RankedList
@@ -294,7 +294,7 @@ export function ReportSheet({ data }: { data: ReportData }) {
           </div>
         </section>
 
-        <section className="mt-2.5 grid grid-cols-3 gap-3.5">
+        <section className="mt-5 grid grid-cols-3 gap-6">
           <div>
             <SectionTitle>Jenis Layanan</SectionTitle>
             <RankedList items={data.services} format={formatNumber} max={4} />
@@ -309,7 +309,7 @@ export function ReportSheet({ data }: { data: ReportData }) {
           </div>
         </section>
 
-        <footer className="mt-3 border-t border-slate-200 pt-1.5 text-[6.5pt] text-slate-400">
+        <footer className="mt-6 border-t border-slate-200 pt-2 text-[6.5pt] text-slate-400">
           ZEA Medika Farma — laporan internal. Data bersumber dari Google Sheets &quot;Smart Finance ZMF&quot;, dibuat
           otomatis oleh dashboard pada {new Date(data.generatedAt).toLocaleString("id-ID")}.
         </footer>

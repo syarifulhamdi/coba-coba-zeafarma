@@ -121,13 +121,20 @@ export function DashboardApp({
     return null;
   }, [filters.incomeCategory, filters.expenseCategory]);
 
+  // Unfiltered series, used for the KPI sparklines so they keep showing overall
+  // performance even while a single category is focused.
+  const overallTrend = useMemo(
+    () => buildMonthlySeries(snapshot.income, snapshot.expenses, snapshot.profitGoals, periods),
+    [snapshot, periods]
+  );
+
   const trendData = useMemo(() => {
     if (activeCategory) {
       const source = activeCategory.type === "income" ? snapshot.income : snapshot.expenses;
       return buildCategoryMonthlySeries(source, activeCategory.name, periods);
     }
-    return buildMonthlySeries(snapshot.income, snapshot.expenses, snapshot.profitGoals, periods);
-  }, [activeCategory, snapshot, periods]);
+    return overallTrend;
+  }, [activeCategory, snapshot, periods, overallTrend]);
 
   const tableTransactions = useMemo(() => {
     if (activeCategory) {
@@ -201,7 +208,7 @@ export function DashboardApp({
         actions={<ExportMenu filters={filters} />}
       />
 
-      <main className="mx-auto flex max-w-7xl flex-col gap-5 px-4 py-6 sm:px-6 lg:px-8">
+      <main className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-7 sm:px-6 lg:px-8">
         {/* Report letterhead — only rendered on the printed/PDF version. */}
         <div className="hidden print:block">
           <h1 className="text-lg font-semibold text-foreground">ZEA MEDIKA FARMA</h1>
@@ -218,11 +225,22 @@ export function DashboardApp({
           </div>
         )}
 
+        <div className="print-hidden flex flex-col gap-1">
+          <h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-[22px]">
+            {isVisitView ? "Kunjungan Pasien" : "Kinerja Keuangan"}
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            {isVisitView
+              ? `Volume dan komposisi kunjungan klinik pada periode ${range.label}.`
+              : `Omzet, pengeluaran, dan profitabilitas pada periode ${range.label}.`}
+          </p>
+        </div>
+
         <PeriodFilter filters={filters} availableYears={availableYears} onChange={updateFilters} />
 
         {isVisitView ? (
           <>
-            <VisitKpiCards kpis={visitKpis} />
+            <VisitKpiCards kpis={visitKpis} trend={visitTrend} />
 
             <VisitTrendChart data={visitTrend} />
 
@@ -280,7 +298,7 @@ export function DashboardApp({
               </div>
             )}
 
-            <KpiCards kpis={kpis} />
+            <KpiCards kpis={kpis} trend={overallTrend} />
 
             <div className="grid grid-cols-1 items-start gap-4 xl:grid-cols-2">
               <IncomeCategoryChart

@@ -21,7 +21,12 @@ interface BrandHeaderProps {
 
 export function BrandHeader({ view, periodLabel, userName, onViewChange, onLogout, actions }: BrandHeaderProps) {
   return (
-    <header className="sticky top-0 z-30 border-b border-border bg-card/85 backdrop-blur-md print:static print:bg-white">
+    <header className="sticky top-0 z-30 border-b border-border bg-card/80 backdrop-blur-xl print:static print:bg-white">
+      {/* Thin brand band: the navy from the mark, carried across the top. */}
+      <div
+        className="h-[3px] w-full print:hidden"
+        style={{ background: "linear-gradient(90deg, var(--brand) 0%, var(--brand-deep) 55%, var(--brand-grey) 100%)" }}
+      />
       <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-6 gap-y-3 px-4 py-3 sm:px-6 lg:px-8">
         <div className="flex items-center gap-3">
           <Image
@@ -49,10 +54,10 @@ export function BrandHeader({ view, periodLabel, userName, onViewChange, onLogou
                 onClick={() => onViewChange(id)}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-[13px] font-medium transition-colors sm:flex-none",
+                  "inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3.5 py-1.5 text-[13px] font-medium transition-all duration-200 sm:flex-none",
                   active
-                    ? "bg-card text-primary shadow-[var(--shadow-card)]"
-                    : "text-muted-foreground hover:text-foreground"
+                    ? "bg-primary text-primary-foreground shadow-[var(--shadow-card)]"
+                    : "text-muted-foreground hover:bg-card hover:text-foreground"
                 )}
               >
                 <Icon className="h-4 w-4" />

@@ -28,16 +28,16 @@ export function IncomeCategoryChart({ title, description, data, selected, onSele
           <EmptyState />
         ) : (
           <div className="flex flex-col items-center gap-4 sm:flex-row">
-            <div className="relative h-56 w-56 shrink-0">
-              <PieChart width={224} height={224}>
+            <div className="relative h-64 w-64 shrink-0">
+              <PieChart width={256} height={256}>
                 <Pie
                   data={data}
                   dataKey="total"
                   nameKey="category"
-                  cx={112}
-                  cy={112}
-                  innerRadius={62}
-                  outerRadius={92}
+                  cx={128}
+                  cy={128}
+                  innerRadius={72}
+                  outerRadius={108}
                   paddingAngle={2}
                   cornerRadius={4}
                   stroke="var(--card)"
@@ -65,12 +65,12 @@ export function IncomeCategoryChart({ title, description, data, selected, onSele
                 />
               </PieChart>
               <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-[11px] text-muted-foreground">Total</span>
-                <span className="text-sm font-semibold tabular-nums">{formatCurrencyCompact(total)}</span>
+                <span className="text-xs text-muted-foreground">Total</span>
+                <span className="text-base font-semibold tabular-nums">{formatCurrencyCompact(total)}</span>
               </div>
             </div>
 
-            <ul className="flex w-full flex-col gap-1.5">
+            <ul className="flex w-full flex-col gap-2">
               {data.map((entry) => {
                 const isSelected = selected === entry.category;
                 const isDimmed = selected !== null && !isSelected;
@@ -79,7 +79,7 @@ export function IncomeCategoryChart({ title, description, data, selected, onSele
                     <button
                       type="button"
                       onClick={() => onSelect(isSelected ? null : entry.category)}
-                      className={`flex w-full items-center justify-between gap-3 rounded-lg px-2 py-1.5 text-left text-sm transition-colors hover:bg-accent ${
+                      className={`flex w-full items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-left text-sm transition-colors hover:bg-accent ${
                         isSelected ? "bg-accent" : ""
                       } ${isDimmed ? "opacity-50" : ""}`}
                     >

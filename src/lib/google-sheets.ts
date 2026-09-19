@@ -53,6 +53,23 @@ export async function fetchSheetGrid(tabName: string, a1Range = "A1:AB1000"): Pr
   return (res.data.values as SheetGrid) ?? [];
 }
 
+/**
+ * Titles of every tab in the spreadsheet. Used to discover the visit-traffic
+ * tabs, which are added one per year, so a new year appears on the dashboard
+ * without a code or config change.
+ */
+export async function listSheetTitles(): Promise<string[]> {
+  const { spreadsheetId } = getCredentials();
+  const sheets = getSheetsClient();
+  const res = await sheets.spreadsheets.get({
+    spreadsheetId,
+    fields: "sheets.properties.title",
+  });
+  return (res.data.sheets ?? [])
+    .map((s) => s.properties?.title)
+    .filter((t): t is string => typeof t === "string");
+}
+
 export const SHEET_TABS = {
   income: process.env.SHEET_TAB_INCOME || "Income",
   expenses: process.env.SHEET_TAB_EXPENSES || "Expenses",

@@ -1,4 +1,4 @@
-import type { DashboardFilters, PeriodMode, Transaction } from "@/types";
+import type { DashboardFilters, DashboardView, PeriodMode, Transaction } from "@/types";
 
 export function latestPeriodKey(transactions: Transaction[]): string {
   let latest = "";
@@ -12,6 +12,7 @@ export function defaultFilters(transactions: Transaction[]): DashboardFilters {
   const latest = latestPeriodKey(transactions);
   const [year] = latest.split("-");
   return {
+    view: "keuangan",
     mode: "monthly",
     month: latest,
     year,
@@ -24,13 +25,18 @@ export function defaultFilters(transactions: Transaction[]): DashboardFilters {
 }
 
 const VALID_MODES: PeriodMode[] = ["monthly", "yearly", "custom"];
+const VALID_VIEWS: DashboardView[] = ["keuangan", "kunjungan"];
 
 export function parseFilters(params: URLSearchParams, fallback: DashboardFilters): DashboardFilters {
   const mode = VALID_MODES.includes(params.get("mode") as PeriodMode)
     ? (params.get("mode") as PeriodMode)
     : fallback.mode;
+  const view = VALID_VIEWS.includes(params.get("view") as DashboardView)
+    ? (params.get("view") as DashboardView)
+    : fallback.view;
 
   return {
+    view,
     mode,
     month: params.get("month") || fallback.month,
     year: params.get("year") || fallback.year,
@@ -44,6 +50,7 @@ export function parseFilters(params: URLSearchParams, fallback: DashboardFilters
 
 export function filtersToParams(filters: DashboardFilters): URLSearchParams {
   const params = new URLSearchParams();
+  if (filters.view !== "keuangan") params.set("view", filters.view);
   params.set("mode", filters.mode);
   if (filters.mode === "monthly") params.set("month", filters.month);
   if (filters.mode === "yearly") params.set("year", filters.year);

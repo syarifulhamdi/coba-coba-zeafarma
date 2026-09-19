@@ -112,6 +112,43 @@ export function expenseCategoryColor(category: string, mode: "light" | "dark" = 
   return colorForIndex(index, mode);
 }
 
+// Visit-traffic categories. The seven service types fit inside the validated
+// core palette; staff names are open-ended so they fold into the extended tier
+// by name hash, and always render with a direct label alongside the bar.
+export const VISIT_SERVICE_ORDER = [
+  "Konsultasi/Berobat",
+  "Observasi",
+  "Rawat Inap",
+  "Home Visit",
+  "Immune Booster",
+  "Medical Chek Up",
+  "Tindakan Lain-lain",
+];
+
+const VISIT_SERVICE_LOOKUP = buildLookup(VISIT_SERVICE_ORDER);
+
+export function visitServiceColor(label: string, mode: "light" | "dark" = "light"): string {
+  const index = resolveIndex(label, VISIT_SERVICE_LOOKUP, EXTENDED_PALETTE.length);
+  return colorForIndex(index, mode);
+}
+
+export function visitStaffColor(label: string, mode: "light" | "dark" = "light"): string {
+  return colorForIndex(hashIndex(label, CORE_PALETTE.length + EXTENDED_PALETTE.length), mode);
+}
+
+// Two-value splits (new vs returning, male vs female) use slots 1 and 2, the
+// pair validated as distinguishable under all common CVD types.
+export const VISIT_PAIR_COLORS = {
+  primary: CORE_PALETTE[0],
+  secondary: CORE_PALETTE[1],
+};
+
+export function visitPairColor(label: string, mode: "light" | "dark" = "light"): string {
+  const normalized = normalize(label);
+  const isSecondary = /lama|perempuan|wanita/.test(normalized);
+  return (isSecondary ? VISIT_PAIR_COLORS.secondary : VISIT_PAIR_COLORS.primary)[mode];
+}
+
 // Semantic (non-categorical) chart roles — chrome, not data identity.
 export const SEMANTIC_COLORS = {
   income: { light: "#1baf7a", dark: "#199e70" },

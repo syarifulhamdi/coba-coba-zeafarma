@@ -56,17 +56,62 @@ export interface DashboardKpis {
   marginPercent: KpiComparison;
 }
 
+/**
+ * The "Trafik Kunjungan" tabs group visit counts into four blocks, each a
+ * label x month matrix. Rows are flattened into one record per label/month so
+ * they aggregate the same way transactions do.
+ */
+export type VisitBlockKind = "patientType" | "service" | "staff" | "gender";
+
+export interface VisitRecord {
+  kind: VisitBlockKind;
+  label: string;
+  year: number;
+  month: number; // 1-12
+  periodKey: string; // "YYYY-MM"
+  count: number;
+}
+
+export interface VisitBreakdownItem {
+  label: string;
+  total: number;
+  color: string;
+  share: number; // 0-1 fraction of the block total
+}
+
+export interface VisitMonthlyPoint {
+  periodKey: string;
+  label: string;
+  year: number;
+  month: number;
+  total: number;
+  baru: number;
+  lama: number;
+}
+
+export interface VisitKpis {
+  total: KpiComparison;
+  baru: KpiComparison;
+  lama: KpiComparison;
+  /** Share of visits that are first-time patients, as a percentage. */
+  newPatientRate: KpiComparison;
+}
+
 export interface SheetsSnapshot {
   income: Transaction[];
   expenses: Transaction[];
   profitGoals: ProfitGoals;
+  visits: VisitRecord[];
   fetchedAt: string;
   warnings: string[];
 }
 
 export type PeriodMode = "monthly" | "yearly" | "custom";
 
+export type DashboardView = "keuangan" | "kunjungan";
+
 export interface DashboardFilters {
+  view: DashboardView;
   mode: PeriodMode;
   month: string; // "YYYY-MM", used when mode === monthly
   year: string; // "YYYY", used when mode === yearly

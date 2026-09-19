@@ -3,36 +3,45 @@
 :root {
   --radius: 0.75rem;
 
-  --background: #f9f9f7;
-  --foreground: #0b0b0b;
+  /* Brand palette taken from the ZEA Medika Farma mark: a deep navy wordmark
+     paired with a steel grey glyph. */
+  --brand: #0d4a7d;
+  --brand-deep: #08375e;
+  --brand-grey: #58595b;
+
+  --background: #f4f6f9;
+  --foreground: #0f1720;
 
   --card: #ffffff;
-  --card-foreground: #0b0b0b;
+  --card-foreground: #0f1720;
 
   --popover: #ffffff;
-  --popover-foreground: #0b0b0b;
+  --popover-foreground: #0f1720;
 
-  --primary: #0f766e;
+  --primary: #0d4a7d;
   --primary-foreground: #ffffff;
 
-  --secondary: #eef6f4;
-  --secondary-foreground: #0f766e;
+  --secondary: #eaf1f8;
+  --secondary-foreground: #0d4a7d;
 
-  --accent: #e6f4f1;
-  --accent-foreground: #0f766e;
+  --accent: #e3edf7;
+  --accent-foreground: #0d4a7d;
 
-  --muted: #f1f1ee;
-  --muted-foreground: #6b6a65;
+  --muted: #eef1f5;
+  --muted-foreground: #64707e;
 
-  --destructive: #d03b3b;
+  --destructive: #c8372f;
   --destructive-foreground: #ffffff;
 
-  --success: #0ca30c;
+  --success: #0a8a4a;
   --success-foreground: #ffffff;
 
-  --border: #e5e4de;
-  --input: #e5e4de;
-  --ring: #0f766e;
+  --border: #e0e5ec;
+  --input: #dbe1ea;
+  --ring: #0d4a7d;
+
+  --shadow-card: 0 1px 2px rgba(15, 23, 32, 0.04), 0 1px 3px rgba(15, 23, 32, 0.06);
+  --shadow-raised: 0 4px 12px rgba(13, 74, 125, 0.08), 0 1px 3px rgba(15, 23, 32, 0.06);
 }
 
 @theme inline {
@@ -57,6 +66,9 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-brand: var(--brand);
+  --color-brand-deep: var(--brand-deep);
+  --color-brand-grey: var(--brand-grey);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -82,4 +94,33 @@ body {
 
 .tabular-nums {
   font-variant-numeric: tabular-nums;
+}
+
+/* Print / "Save as PDF" path for the monthly report: drop the app chrome and
+   let charts keep their fills, which browsers strip by default. */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 12mm;
+  }
+
+  body {
+    background: #ffffff;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .print-hidden {
+    display: none !important;
+  }
+
+  .print-block {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .print-surface {
+    box-shadow: none !important;
+    border-color: #d8dee6 !important;
+  }
 }

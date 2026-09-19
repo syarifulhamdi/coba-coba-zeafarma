@@ -87,8 +87,11 @@ export function IncomeCategoryChart({ title, description, data, selected, onSele
                         <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: entry.color }} />
                         <span className="truncate">{entry.category}</span>
                       </span>
-                      <span className="shrink-0 tabular-nums text-muted-foreground">
-                        {(entry.share * 100).toFixed(0)}%
+                      <span className="shrink-0 text-right tabular-nums">
+                        <span className="block font-medium">{formatCurrencyCompact(entry.total)}</span>
+                        <span className="block text-xs text-muted-foreground">
+                          {(entry.share * 100).toFixed(0)}%
+                        </span>
                       </span>
                     </button>
                   </li>

@@ -8,8 +8,16 @@ shadcn/ui, dan Recharts. Data diambil langsung dari Google Sheets API v4
 
 ## Fitur
 
+- **Dua dashboard dalam satu aplikasi**, dipilih lewat tab di header dan
+  tersimpan di URL (`?view=keuangan` / `?view=kunjungan`):
+  - **Keuangan** — omzet, pengeluaran, profit, margin.
+  - **Kunjungan Pasien** — jumlah kunjungan, pasien baru vs lama, jenis
+    layanan, performa staf, dan komposisi gender.
 - **KPI cards**: Total Omzet, Total Pengeluaran, Net Profit, Margin %, dengan
   indikator naik/turun MoM (atau vs periode pembanding lainnya).
+- **Export laporan bulanan**: unduh CSV (siap dibuka di Excel) berisi ringkasan
+  keuangan + kunjungan + rincian transaksi untuk periode yang sedang dipilih,
+  atau cetak/simpan PDF lewat tampilan cetak khusus.
 - **Filter periode**: Bulanan / Tahunan / Custom range, tersimpan di URL query
   params (bisa di-bookmark & share).
 - **Cross-filtering**: klik kategori di chart Omzet atau Pengeluaran akan
@@ -30,14 +38,18 @@ src/
     page.tsx              # Dashboard utama (server component, fetch snapshot)
     login/page.tsx         # Halaman login (password gate)
     api/auth/login|logout   # Route handlers untuk sesi login
-    globals.css             # Design tokens (warna, radius, dll)
+    api/export/route.ts      # Unduhan laporan CSV untuk periode terpilih
+    globals.css             # Design tokens (warna brand, radius, gaya cetak)
   components/
     ui/                     # Primitif ala shadcn/ui (Button, Card, Table, ...)
     dashboard/               # Komponen dashboard (KPI, chart, tabel, filter)
   lib/
     google-sheets.ts         # Klien Google Sheets API (service account)
     parse-sheets.ts          # Parser baris mentah -> Transaction / ProfitGoals
+    parse-visits.ts           # Parser tab "Trafik Kunjungan" -> VisitRecord
     aggregate.ts              # KPI, breakdown kategori, tren bulanan, dst.
+    visit-aggregate.ts         # KPI & breakdown untuk data kunjungan
+    report.ts                   # Penyusun laporan bulanan + serialisasi CSV
     data.ts                   # Snapshot data ter-cache (15 menit)
     filters.ts                 # Serialize/parse filter dari/ke URL query params
     colors.ts                  # Palet warna kategori (konsisten & accessible)
@@ -64,6 +76,17 @@ Dashboard ini membaca 3 tab dari spreadsheet "Smart Finance ZMF":
   mengasumsikan daftar kategori tetap**: kategori diambil dari nilai yang
   benar-benar muncul di data, jadi kategori baru yang ditambahkan nanti akan
   otomatis muncul di chart tanpa perlu ubah kode.
+- **Trafik Kunjungan / Trafik Kunjungan 2026** — data kunjungan pasien, satu
+  tab per tahun. Tiap tab berisi empat blok dengan bentuk matriks (kolom:
+  label, TOTAL, JAN–DES): jumlah **Pasien Baru/Lama**, **Jenis Layanan**,
+  **Performa staf**, dan **komposisi gender**. Parser mencari tiap blok lewat
+  baris header-nya (bukan nomor baris), hanya membaca kolom bulan JAN–DES
+  (beberapa baris punya angka nyasar di kolom sesudahnya, yang kalau ikut
+  terbaca akan jadi "bulan ke-13"), dan memperlakukan sel kosong atau `-`
+  sebagai *belum ada data* — bukan nol. Tab baru untuk tahun berikutnya akan
+  terdeteksi otomatis selama namanya mengandung "Trafik Kunjungan" dan tahun.
+  Angka **Total Kunjungan** diambil dari blok Pasien Baru/Lama, karena blok
+  layanan dan staf di spreadsheet sumber punya total yang sedikit berbeda.
 - **Setup** — target profit bulanan per tahun (2025–2029) dibaca secara
   dinamis: kode mencari sel "Calendar Year", memetakan kolom per tahun, lalu
   membaca nilai target pada baris tiap bulan (Jan–Des) di bawahnya. Ini

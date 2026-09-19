@@ -1,8 +1,9 @@
 "use client";
 
 import { Suspense, useState } from "react";
+import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Lock } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -39,14 +40,22 @@ function LoginForm() {
   }
 
   return (
-    <div className="flex min-h-svh items-center justify-center bg-background px-4">
-      <Card className="w-full max-w-sm">
+    <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-gradient-to-b from-secondary/60 via-background to-background px-4">
+      <Image
+        src="/zea-logo.jpg"
+        alt="ZEA Medika Farma"
+        width={1284}
+        height={293}
+        priority
+        className="h-11 w-auto"
+      />
+      <Card className="w-full max-w-sm shadow-[var(--shadow-raised)]">
         <CardHeader className="items-center text-center">
           <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-secondary text-secondary-foreground">
-            <Lock className="h-5 w-5" />
+            <ShieldCheck className="h-5 w-5" />
           </div>
-          <CardTitle className="text-base text-foreground">ZEA Farma Dashboard</CardTitle>
-          <CardDescription>Masukkan password untuk mengakses data internal.</CardDescription>
+          <CardTitle className="text-base text-foreground">Dashboard Internal</CardTitle>
+          <CardDescription>Masukkan password untuk mengakses data klinik &amp; apotek.</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">

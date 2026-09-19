@@ -26,6 +26,7 @@ export function defaultFilters(transactions: Transaction[]): DashboardFilters {
 
 const VALID_MODES: PeriodMode[] = ["monthly", "yearly", "custom"];
 const VALID_VIEWS: DashboardView[] = ["keuangan", "kunjungan"];
+const VALID_COMPARE: DashboardFilters["compare"][] = ["previous", "yoy", "none"];
 
 export function parseFilters(params: URLSearchParams, fallback: DashboardFilters): DashboardFilters {
   const mode = VALID_MODES.includes(params.get("mode") as PeriodMode)
@@ -44,7 +45,9 @@ export function parseFilters(params: URLSearchParams, fallback: DashboardFilters
     to: params.get("to") || fallback.to,
     incomeCategory: params.get("incomeCategory") || null,
     expenseCategory: params.get("expenseCategory") || null,
-    compare: params.get("compare") === "none" ? "none" : "previous",
+    compare: VALID_COMPARE.includes(params.get("compare") as DashboardFilters["compare"])
+      ? (params.get("compare") as DashboardFilters["compare"])
+      : fallback.compare,
   };
 }
 
@@ -60,6 +63,6 @@ export function filtersToParams(filters: DashboardFilters): URLSearchParams {
   }
   if (filters.incomeCategory) params.set("incomeCategory", filters.incomeCategory);
   if (filters.expenseCategory) params.set("expenseCategory", filters.expenseCategory);
-  if (filters.compare === "none") params.set("compare", "none");
+  if (filters.compare !== "previous") params.set("compare", filters.compare);
   return params;
 }

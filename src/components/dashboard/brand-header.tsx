@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Activity, LogOut, Wallet } from "lucide-react";
+import { Activity, LogOut, UserRound, Wallet } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { DashboardView } from "@/types";
 
@@ -13,12 +13,13 @@ const VIEWS: { id: DashboardView; label: string; icon: typeof Wallet }[] = [
 interface BrandHeaderProps {
   view: DashboardView;
   periodLabel: string;
+  userName?: string;
   onViewChange: (view: DashboardView) => void;
   onLogout: () => void;
   actions?: React.ReactNode;
 }
 
-export function BrandHeader({ view, periodLabel, onViewChange, onLogout, actions }: BrandHeaderProps) {
+export function BrandHeader({ view, periodLabel, userName, onViewChange, onLogout, actions }: BrandHeaderProps) {
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-card/85 backdrop-blur-md print:static print:bg-white">
       <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-6 gap-y-3 px-4 py-3 sm:px-6 lg:px-8">
@@ -63,9 +64,16 @@ export function BrandHeader({ view, periodLabel, onViewChange, onLogout, actions
 
         <div className="print-hidden ml-auto flex items-center gap-2">
           {actions}
+          {userName && (
+            <span className="hidden items-center gap-1.5 rounded-lg bg-muted px-2.5 py-1.5 text-[13px] text-muted-foreground lg:inline-flex">
+              <UserRound className="h-4 w-4" aria-hidden />
+              <span className="font-medium text-foreground">{userName}</span>
+            </span>
+          )}
           <button
             type="button"
             onClick={onLogout}
+            title={userName ? `Keluar dari akun ${userName}` : "Keluar"}
             className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-border px-3 text-[13px] font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
             <LogOut className="h-4 w-4" />

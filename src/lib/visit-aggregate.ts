@@ -7,6 +7,7 @@ import type {
   VisitKpis,
   VisitMonthlyPoint,
   VisitRecord,
+  YoyPoint,
 } from "@/types";
 
 /**
@@ -119,6 +120,32 @@ export function buildVisitMonthlySeries(
       total: baru + lama,
       baru,
       lama,
+    };
+  });
+}
+
+/**
+ * Visit totals for two calendar years, aligned by month. Months with no rows
+ * at all stay null so an unfinished year does not draw a line down to zero.
+ */
+export function buildVisitYoySeries(records: VisitRecord[], year: number): YoyPoint[] {
+  const byPeriod = new Map<string, number>();
+  for (const r of ofKind(records, "patientType")) {
+    byPeriod.set(r.periodKey, (byPeriod.get(r.periodKey) ?? 0) + r.count);
+  }
+
+  const valueFor = (y: number, m: number): number | null => {
+    const key = `${y}-${String(m).padStart(2, "0")}`;
+    return byPeriod.has(key) ? (byPeriod.get(key) as number) : null;
+  };
+
+  return Array.from({ length: 12 }, (_, i) => {
+    const month = i + 1;
+    return {
+      month,
+      label: monthLabel(month),
+      current: valueFor(year, month),
+      previous: valueFor(year - 1, month),
     };
   });
 }

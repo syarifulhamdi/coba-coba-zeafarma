@@ -25,7 +25,9 @@ export function ExportMenu({ filters }: { filters: DashboardFilters }) {
     };
   }, [open]);
 
-  const csvHref = `/api/export?${filtersToParams(filters).toString()}`;
+  const query = filtersToParams(filters).toString();
+  const csvHref = `/api/export?${query}`;
+  const reportHref = `/laporan?${query}`;
 
   return (
     <div ref={containerRef} className="relative">
@@ -58,22 +60,18 @@ export function ExportMenu({ filters }: { filters: DashboardFilters }) {
               <span className="block text-xs text-muted-foreground">Ringkasan + rincian, siap dibuka di Excel</span>
             </span>
           </a>
-          <button
-            type="button"
+          <a
+            href={reportHref}
             role="menuitem"
-            onClick={() => {
-              setOpen(false);
-              // Let the menu unmount first so it is not captured in the printout.
-              setTimeout(() => window.print(), 50);
-            }}
-            className="flex w-full items-start gap-2.5 rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-muted"
+            onClick={() => setOpen(false)}
+            className="flex items-start gap-2.5 rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-muted"
           >
             <Printer className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
             <span>
-              <span className="block text-[13px] font-medium text-foreground">Cetak / Simpan PDF</span>
-              <span className="block text-xs text-muted-foreground">Tampilan dashboard versi cetak</span>
+              <span className="block text-[13px] font-medium text-foreground">Laporan PDF (1 halaman)</span>
+              <span className="block text-xs text-muted-foreground">Ringkasan keuangan + kunjungan, siap cetak</span>
             </span>
-          </button>
+          </a>
         </div>
       )}
     </div>

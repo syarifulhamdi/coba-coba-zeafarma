@@ -91,12 +91,16 @@ export function PeriodFilter({ filters, availableYears, onChange }: PeriodFilter
 
         <div className="flex flex-col gap-1.5">
           <Label className="text-xs text-muted-foreground">Bandingkan</Label>
-          <Select value={filters.compare} onValueChange={(v) => onChange({ compare: v as "previous" | "none" })}>
-            <SelectTrigger className="w-40">
+          <Select
+            value={filters.compare}
+            onValueChange={(v) => onChange({ compare: v as DashboardFilters["compare"] })}
+          >
+            <SelectTrigger className="w-44">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="previous">Periode sebelumnya</SelectItem>
+              <SelectItem value="yoy">Tahun lalu (YoY)</SelectItem>
               <SelectItem value="none">Tanpa perbandingan</SelectItem>
             </SelectContent>
           </Select>

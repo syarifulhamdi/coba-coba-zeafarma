@@ -8,6 +8,7 @@ import type {
   MonthlyPoint,
   ProfitGoals,
   Transaction,
+  YoyPoint,
 } from "@/types";
 
 export interface PeriodRange {
@@ -32,22 +33,61 @@ function parseISO(dateStr: string): Date {
   return new Date(Date.UTC(y, (m || 1) - 1, d || 1));
 }
 
-export function getPeriodRange(filters: DashboardFilters): PeriodRange {
+function shiftYears(date: Date, delta: number): Date {
+  return new Date(
+    Date.UTC(
+      date.getUTCFullYear() + delta,
+      date.getUTCMonth(),
+      date.getUTCDate(),
+      date.getUTCHours(),
+      date.getUTCMinutes(),
+      date.getUTCSeconds(),
+      date.getUTCMilliseconds()
+    )
+  );
+}
+
+export interface PeriodRangeOptions {
+  /**
+   * Last month (1-12) that has data in the selected year. When a year is still
+   * in progress, comparing its partial total against a full previous year
+   * reads as a collapse even while the business is growing, so the comparison
+   * window is trimmed to the same months on both sides and both labels say so.
+   */
+  lastMonthWithData?: number;
+}
+
+export function getPeriodRange(filters: DashboardFilters, options: PeriodRangeOptions = {}): PeriodRange {
+  const yoy = filters.compare === "yoy";
+
   if (filters.mode === "yearly") {
     const year = Number(filters.year);
+    const lastMonth = options.lastMonthWithData;
+    const partial = typeof lastMonth === "number" && lastMonth >= 1 && lastMonth < 12;
+    const throughMonth = partial ? (lastMonth as number) : 12;
+
     const start = startOfMonth(year, 1);
-    const end = endOfMonth(year, 12);
+    const end = endOfMonth(year, throughMonth);
+    // A calendar year's previous period already *is* the previous year, so
+    // "yoy" and "previous" coincide here.
     const prevStart = startOfMonth(year - 1, 1);
-    const prevEnd = endOfMonth(year - 1, 12);
-    return { start, end, prevStart, prevEnd, label: String(year), prevLabel: String(year - 1) };
+    const prevEnd = endOfMonth(year - 1, throughMonth);
+    const suffix = partial ? ` (${monthLabel(1)}–${monthLabel(throughMonth)})` : "";
+    return {
+      start,
+      end,
+      prevStart,
+      prevEnd,
+      label: `${year}${suffix}`,
+      prevLabel: `${year - 1}${suffix}`,
+    };
   }
 
   if (filters.mode === "custom") {
     const start = parseISO(filters.from);
     const end = new Date(parseISO(filters.to).getTime() + 24 * 60 * 60 * 1000 - 1);
-    const spanMs = end.getTime() - start.getTime();
-    const prevEnd = new Date(start.getTime() - 1);
-    const prevStart = new Date(prevEnd.getTime() - spanMs);
+    const prevStart = yoy ? shiftYears(start, -1) : new Date(start.getTime() - 1 - (end.getTime() - start.getTime()));
+    const prevEnd = yoy ? shiftYears(end, -1) : new Date(start.getTime() - 1);
     return {
       start,
       end,
@@ -62,16 +102,14 @@ export function getPeriodRange(filters: DashboardFilters): PeriodRange {
   const [year, month] = filters.month.split("-").map(Number);
   const start = startOfMonth(year, month);
   const end = endOfMonth(year, month);
-  const prevMonthDate = new Date(Date.UTC(year, month - 2, 1));
+  const prevMonthDate = yoy ? new Date(Date.UTC(year - 1, month - 1, 1)) : new Date(Date.UTC(year, month - 2, 1));
   const prevYear = prevMonthDate.getUTCFullYear();
   const prevMonth = prevMonthDate.getUTCMonth() + 1;
-  const prevStart = startOfMonth(prevYear, prevMonth);
-  const prevEnd = endOfMonth(prevYear, prevMonth);
   return {
     start,
     end,
-    prevStart,
-    prevEnd,
+    prevStart: startOfMonth(prevYear, prevMonth),
+    prevEnd: endOfMonth(prevYear, prevMonth),
     label: `${monthLabel(month)} ${year}`,
     prevLabel: `${monthLabel(prevMonth)} ${prevYear}`,
   };
@@ -154,6 +192,26 @@ function monthsBetween(start: Date, end: Date): { year: number; month: number }[
   return result;
 }
 
+/**
+ * The last month of `year` that has any data at all, across transactions and
+ * visit records. Returns null when the year has no data.
+ */
+export function lastMonthWithData(
+  year: number,
+  transactions: Transaction[],
+  visitPeriodKeys: string[] = []
+): number | null {
+  let last = 0;
+  for (const t of transactions) {
+    if (t.year === year && t.month > last) last = t.month;
+  }
+  for (const key of visitPeriodKeys) {
+    const [y, m] = key.split("-").map(Number);
+    if (y === year && m > last) last = m;
+  }
+  return last > 0 ? last : null;
+}
+
 export function periodKeysForFilters(filters: DashboardFilters): { year: number; month: number }[] {
   if (filters.mode === "yearly") {
     const year = Number(filters.year);
@@ -213,6 +271,45 @@ export function buildCategoryMonthlySeries(
       profit: 0,
       target: null,
       focusValue: value,
+    };
+  });
+}
+
+export type YoyMetric = "omzet" | "expense" | "profit";
+
+/**
+ * Lines up two calendar years month by month. Months that have not happened
+ * yet come back as null rather than 0 so the line stops instead of diving to
+ * the axis — a partial year would otherwise read as a collapse.
+ */
+export function buildYoySeries(
+  income: Transaction[],
+  expenses: Transaction[],
+  year: number,
+  metric: YoyMetric
+): YoyPoint[] {
+  const incomeByPeriod = groupByPeriod(income);
+  const expenseByPeriod = groupByPeriod(expenses);
+
+  const valueFor = (y: number, m: number): number | null => {
+    const key = `${y}-${String(m).padStart(2, "0")}`;
+    const incomeRows = incomeByPeriod.get(key);
+    const expenseRows = expenseByPeriod.get(key);
+    if (!incomeRows && !expenseRows) return null;
+    const omzet = sumNet(incomeRows ?? []);
+    const expense = sumNet(expenseRows ?? []);
+    if (metric === "omzet") return omzet;
+    if (metric === "expense") return expense;
+    return omzet - expense;
+  };
+
+  return Array.from({ length: 12 }, (_, i) => {
+    const month = i + 1;
+    return {
+      month,
+      label: monthLabel(month),
+      current: valueFor(year, month),
+      previous: valueFor(year - 1, month),
     };
   });
 }

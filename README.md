@@ -15,9 +15,21 @@ shadcn/ui, dan Recharts. Data diambil langsung dari Google Sheets API v4
     layanan, performa staf, dan komposisi gender.
 - **KPI cards**: Total Omzet, Total Pengeluaran, Net Profit, Margin %, dengan
   indikator naik/turun MoM (atau vs periode pembanding lainnya).
-- **Export laporan bulanan**: unduh CSV (siap dibuka di Excel) berisi ringkasan
+- **Export laporan**: unduh CSV (siap dibuka di Excel) berisi ringkasan
   keuangan + kunjungan + rincian transaksi untuk periode yang sedang dipilih,
-  atau cetak/simpan PDF lewat tampilan cetak khusus.
+  atau buka **laporan PDF 1 halaman** (`/laporan`) — tata letak A4 dengan kop
+  surat, KPI, grafik tren, dan tabel kategori, yang sengaja dirancang agar
+  selalu muat dalam satu halaman.
+- **Perbandingan Year-over-Year**: pilih "Tahun lalu (YoY)" pada filter
+  *Bandingkan* untuk menjajarkan periode yang sama satu tahun sebelumnya,
+  lengkap dengan grafik overlay 12 bulan (tahun ini vs tahun lalu).
+  Untuk tahun yang masih berjalan, dashboard otomatis memotong pembanding ke
+  bulan-bulan yang sama di kedua tahun — membandingkan 8 bulan berjalan
+  dengan 12 bulan penuh akan terbaca seperti penurunan padahal bisnis
+  bertumbuh. Label periode ikut menyebutkan cakupannya, mis. "2026 (Jan–Agu)".
+- **Multi-user**: login dengan username + password, akun didefinisikan lewat
+  environment variable `DASHBOARD_USERS`. Nama pengguna yang sedang masuk
+  ditampilkan di header.
 - **Filter periode**: Bulanan / Tahunan / Custom range, tersimpan di URL query
   params (bisa di-bookmark & share).
 - **Cross-filtering**: klik kategori di chart Omzet atau Pengeluaran akan
@@ -27,7 +39,7 @@ shadcn/ui, dan Recharts. Data diambil langsung dari Google Sheets API v4
   target profit dari sheet "Setup" (jika tersedia untuk tahun tersebut).
 - **Perbandingan periode**: periode berjalan vs periode sebelumnya.
 - **Tabel transaksi detail**: bisa di-collapse/expand, ada search & sort.
-- **Password gate**: seluruh dashboard dilindungi session cookie yang
+- **Akses terlindungi**: seluruh dashboard dilindungi session cookie yang
   ditandatangani (HMAC), tidak ada data yang bisa diakses tanpa login.
 
 ## Struktur proyek
@@ -36,13 +48,15 @@ shadcn/ui, dan Recharts. Data diambil langsung dari Google Sheets API v4
 src/
   app/
     page.tsx              # Dashboard utama (server component, fetch snapshot)
-    login/page.tsx         # Halaman login (password gate)
+    login/page.tsx         # Halaman login (username + password)
+    laporan/page.tsx        # Laporan 1 halaman, siap cetak / simpan PDF
     api/auth/login|logout   # Route handlers untuk sesi login
     api/export/route.ts      # Unduhan laporan CSV untuk periode terpilih
     globals.css             # Design tokens (warna brand, radius, gaya cetak)
   components/
     ui/                     # Primitif ala shadcn/ui (Button, Card, Table, ...)
     dashboard/               # Komponen dashboard (KPI, chart, tabel, filter)
+    report/                   # Tata letak laporan A4 satu halaman
   lib/
     google-sheets.ts         # Klien Google Sheets API (service account)
     parse-sheets.ts          # Parser baris mentah -> Transaction / ProfitGoals
@@ -54,6 +68,7 @@ src/
     filters.ts                 # Serialize/parse filter dari/ke URL query params
     colors.ts                  # Palet warna kategori (konsisten & accessible)
     auth.ts                    # Sign/verify session cookie
+    users.ts                    # Daftar akun dari env + pengecekan kredensial
   proxy.ts                      # Middleware: menahan request tanpa sesi ke /login
   types/index.ts               # Tipe data bersama
 ```
@@ -155,10 +170,20 @@ Google Sheets.
    - `GOOGLE_SERVICE_ACCOUNT_EMAIL` — dari `client_email`.
    - `GOOGLE_PRIVATE_KEY` — dari `private_key` (termasuk baris
      `-----BEGIN PRIVATE KEY-----` dan `-----END PRIVATE KEY-----`).
-   - `DASHBOARD_PASSWORD` — password untuk masuk ke dashboard. Pilih yang
-     kuat & unik.
+   - `DASHBOARD_USERS` — daftar akun dalam bentuk JSON array satu baris,
+     misalnya:
+
+     ```
+     DASHBOARD_USERS='[{"username":"admin","password":"...","name":"Administrator"},{"username":"putri","password":"...","name":"Putri"}]'
+     ```
+
+     Username dicocokkan tanpa membedakan huruf besar/kecil; password
+     dicocokkan persis. Untuk menambah atau menghapus pengguna, ubah nilai ini
+     lalu redeploy — tidak ada halaman pendaftaran. Perlakukan nilainya
+     sebagai kredensial: siapa pun yang bisa membacanya bisa login.
    - `AUTH_SECRET` — jalankan `openssl rand -base64 32` di terminal, tempel
-     hasilnya.
+     hasilnya. Mengganti nilai ini akan membuat semua sesi login yang sedang
+     berjalan langsung tidak berlaku.
 3. Jangan pernah commit `.env.local` ke git (sudah otomatis di-ignore lewat
    `.gitignore`).
 
@@ -170,7 +195,7 @@ npm run dev
 ```
 
 Buka [http://localhost:3000](http://localhost:3000) — Anda akan diarahkan ke
-`/login`, masukkan `DASHBOARD_PASSWORD` yang sudah diisi di `.env.local`.
+`/login`, masuk dengan salah satu akun dari `DASHBOARD_USERS` di `.env.local`.
 
 ## Build
 
@@ -206,7 +231,7 @@ vercel link
 vercel env add GOOGLE_SHEETS_ID
 vercel env add GOOGLE_SERVICE_ACCOUNT_EMAIL
 vercel env add GOOGLE_PRIVATE_KEY
-vercel env add DASHBOARD_PASSWORD
+vercel env add DASHBOARD_USERS
 vercel env add AUTH_SECRET
 vercel deploy --prod
 ```
@@ -225,10 +250,17 @@ tetap cepat dan jauh dari rate limit Google Sheets API.
 
 ## Keamanan
 
-- **Password gate**: middleware (`src/proxy.ts`) memeriksa session cookie
+- **Gerbang login**: middleware (`src/proxy.ts`) memeriksa session cookie
   bertanda tangan HMAC-SHA256 (`AUTH_SECRET`) pada setiap request; tanpa
   cookie valid, request diarahkan ke `/login`. Cookie di-set `httpOnly`,
-  `secure` (di production), dan `sameSite=lax`.
+  `secure` (di production), dan `sameSite=lax`, dan memuat username sehingga
+  dashboard tahu siapa yang sedang masuk tanpa query tambahan.
+  Satu-satunya berkas yang sengaja dibiarkan publik adalah logo
+  (`/zea-logo.jpg`), karena halaman login menampilkannya sebelum sesi ada.
+- **Kesalahan login tidak membocorkan informasi**: pesan galat selalu
+  "Username atau password salah", dan seluruh akun tetap diperiksa walau sudah
+  ketemu yang cocok, supaya lama respons tidak mengungkap apakah sebuah
+  username terdaftar.
 - **Tidak ada kredensial di kode**: semua kredensial (Google service account,
   password dashboard, secret sesi) hanya lewat environment variables. Jangan
   commit `.env.local` atau file kredensial JSON ke git.
@@ -236,10 +268,9 @@ tetap cepat dan jauh dari rate limit Google Sheets API.
   cuma satu password bersama), opsi paling praktis adalah mengganti password
   gate ini dengan [NextAuth.js](https://authjs.dev) + Google provider, dibatasi
   lewat `signIn` callback yang mengecek domain/daftar email yang diizinkan.
-  Ini belum diimplementasikan di MVP ini agar setup tetap sederhana (satu
-  password bersama untuk direksi/tim internal), tapi struktur middleware
-  sudah terpisah rapi di `src/proxy.ts` + `src/lib/auth.ts` sehingga mudah
-  diganti nanti.
+  Struktur autentikasi sudah terpisah rapi (`src/lib/users.ts` untuk akun,
+  `src/lib/auth.ts` untuk sesi, `src/proxy.ts` untuk penjagaan route) sehingga
+  penggantian itu tidak perlu menyentuh kode dashboard.
 
 ## Known limitations / ide pengembangan lanjutan
 

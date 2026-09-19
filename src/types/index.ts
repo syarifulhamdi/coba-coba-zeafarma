@@ -119,5 +119,17 @@ export interface DashboardFilters {
   to: string; // ISO date, used when mode === custom
   incomeCategory: string | null;
   expenseCategory: string | null;
-  compare: "previous" | "none";
+  /**
+   * "previous" = the period immediately before this one (MoM).
+   * "yoy"      = the same period one year earlier.
+   */
+  compare: "previous" | "yoy" | "none";
+}
+
+/** One month aligned across two years, for the year-over-year overlay. */
+export interface YoyPoint {
+  month: number;
+  label: string;
+  current: number | null;
+  previous: number | null;
 }

@@ -1,4 +1,4 @@
-import { buildKpis, categoryTotals, getPeriodRange, inRange } from "./aggregate";
+import { buildKpis, categoryTotals, getPeriodRange, inRange, lastMonthWithData } from "./aggregate";
 import { buildVisitKpis, monthKeysBetween, visitBreakdown, visitsInPeriods } from "./visit-aggregate";
 import type { DashboardFilters, SheetsSnapshot } from "@/types";
 
@@ -20,7 +20,12 @@ function percent(value: number): string {
 }
 
 export function buildMonthlyReport(snapshot: SheetsSnapshot, filters: DashboardFilters): MonthlyReport {
-  const range = getPeriodRange(filters);
+  const lastMonth = lastMonthWithData(
+    Number(filters.year),
+    [...snapshot.income, ...snapshot.expenses],
+    snapshot.visits.map((v) => v.periodKey)
+  );
+  const range = getPeriodRange(filters, { lastMonthWithData: lastMonth ?? undefined });
 
   const incomeCur = snapshot.income.filter((t) => inRange(t, range.start, range.end));
   const incomePrev = snapshot.income.filter((t) => inRange(t, range.prevStart, range.prevEnd));

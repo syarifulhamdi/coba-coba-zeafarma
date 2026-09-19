@@ -14,19 +14,23 @@ import { ComparisonPanel } from "./comparison-panel";
 import { TransactionsTable } from "./transactions-table";
 import { VisitKpiCards } from "./visit-kpi-cards";
 import { GenderSplitCard, VisitBreakdownChart, VisitTrendChart } from "./visit-charts";
+import { YoyChart } from "./yoy-chart";
 import {
   buildCategoryMonthlySeries,
   buildKpis,
   buildMonthlySeries,
+  buildYoySeries,
   categoryTotals,
   filterByCategory,
   getPeriodRange,
   inRange,
+  lastMonthWithData,
   periodKeysForFilters,
 } from "@/lib/aggregate";
 import {
   buildVisitKpis,
   buildVisitMonthlySeries,
+  buildVisitYoySeries,
   monthKeysBetween,
   visitBreakdown,
   visitsInPeriods,
@@ -36,7 +40,7 @@ import { defaultFilters, filtersToParams, parseFilters } from "@/lib/filters";
 import { incomeCategoryColor, expenseCategoryColor } from "@/lib/colors";
 import type { DashboardFilters, DashboardView, SheetsSnapshot } from "@/types";
 
-export function DashboardApp({ snapshot }: { snapshot: SheetsSnapshot }) {
+export function DashboardApp({ snapshot, userName }: { snapshot: SheetsSnapshot; userName?: string }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -67,7 +71,15 @@ export function DashboardApp({ snapshot }: { snapshot: SheetsSnapshot }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const range = useMemo(() => getPeriodRange(filters), [filters]);
+  const range = useMemo(() => {
+    const year = Number(filters.year);
+    const lastMonth = lastMonthWithData(
+      year,
+      [...snapshot.income, ...snapshot.expenses],
+      snapshot.visits.map((v) => v.periodKey)
+    );
+    return getPeriodRange(filters, { lastMonthWithData: lastMonth ?? undefined });
+  }, [filters, snapshot]);
   const periods = useMemo(() => periodKeysForFilters(filters), [filters]);
 
   const incomeInPeriod = useMemo(
@@ -137,6 +149,20 @@ export function DashboardApp({ snapshot }: { snapshot: SheetsSnapshot }) {
   const staffBreakdown = useMemo(() => visitBreakdown(visitsCurrent, "staff"), [visitsCurrent]);
   const genderBreakdown = useMemo(() => visitBreakdown(visitsCurrent, "gender"), [visitsCurrent]);
 
+  // The YoY overlay always spans whole calendar years, so it is anchored to the
+  // year of the selected period rather than to the period's own length.
+  const focusYear = useMemo(() => range.end.getUTCFullYear(), [range]);
+  const showYoy = filters.compare === "yoy";
+
+  const yoyFinance = useMemo(
+    () => (showYoy ? buildYoySeries(snapshot.income, snapshot.expenses, focusYear, "omzet") : []),
+    [showYoy, snapshot.income, snapshot.expenses, focusYear]
+  );
+  const yoyVisits = useMemo(
+    () => (showYoy ? buildVisitYoySeries(snapshot.visits, focusYear) : []),
+    [showYoy, snapshot.visits, focusYear]
+  );
+
   function selectIncomeCategory(category: string | null) {
     updateFilters({ incomeCategory: category, expenseCategory: null });
   }
@@ -160,6 +186,7 @@ export function DashboardApp({ snapshot }: { snapshot: SheetsSnapshot }) {
       <BrandHeader
         view={filters.view}
         periodLabel={range.label}
+        userName={userName}
         onViewChange={selectView}
         onLogout={handleLogout}
         actions={<ExportMenu filters={filters} />}
@@ -189,6 +216,16 @@ export function DashboardApp({ snapshot }: { snapshot: SheetsSnapshot }) {
             <VisitKpiCards kpis={visitKpis} />
 
             <VisitTrendChart data={visitTrend} />
+
+            {showYoy && (
+              <YoyChart
+                data={yoyVisits}
+                year={focusYear}
+                kind="count"
+                title={`Perbandingan Tahunan (YoY) — ${focusYear} vs ${focusYear - 1}`}
+                description="Jumlah kunjungan bulan per bulan, dibandingkan dengan tahun sebelumnya."
+              />
+            )}
 
             <div className="grid grid-cols-1 items-start gap-4 xl:grid-cols-2">
               <VisitBreakdownChart
@@ -270,6 +307,15 @@ export function DashboardApp({ snapshot }: { snapshot: SheetsSnapshot }) {
                   : null
               }
             />
+
+            {showYoy && (
+              <YoyChart
+                data={yoyFinance}
+                year={focusYear}
+                title={`Perbandingan Omzet Tahunan (YoY) — ${focusYear} vs ${focusYear - 1}`}
+                description="Omzet bulan per bulan, dibandingkan dengan tahun sebelumnya."
+              />
+            )}
 
             {filters.compare !== "none" && (
               <ComparisonPanel kpis={kpis} currentLabel={range.label} previousLabel={range.prevLabel} />

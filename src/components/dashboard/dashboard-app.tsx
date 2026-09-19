@@ -40,7 +40,15 @@ import { defaultFilters, filtersToParams, parseFilters } from "@/lib/filters";
 import { incomeCategoryColor, expenseCategoryColor } from "@/lib/colors";
 import type { DashboardFilters, DashboardView, SheetsSnapshot } from "@/types";
 
-export function DashboardApp({ snapshot, userName }: { snapshot: SheetsSnapshot; userName?: string }) {
+export function DashboardApp({
+  snapshot,
+  userName,
+  buildId,
+}: {
+  snapshot: SheetsSnapshot;
+  userName?: string;
+  buildId?: string;
+}) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -150,17 +158,18 @@ export function DashboardApp({ snapshot, userName }: { snapshot: SheetsSnapshot;
   const genderBreakdown = useMemo(() => visitBreakdown(visitsCurrent, "gender"), [visitsCurrent]);
 
   // The YoY overlay always spans whole calendar years, so it is anchored to the
-  // year of the selected period rather than to the period's own length.
+  // year of the selected period rather than to the period's own length. It is
+  // always rendered — year-on-year growth is a headline number here, not
+  // something to go looking for in a dropdown.
   const focusYear = useMemo(() => range.end.getUTCFullYear(), [range]);
-  const showYoy = filters.compare === "yoy";
 
   const yoyFinance = useMemo(
-    () => (showYoy ? buildYoySeries(snapshot.income, snapshot.expenses, focusYear, "omzet") : []),
-    [showYoy, snapshot.income, snapshot.expenses, focusYear]
+    () => buildYoySeries(snapshot.income, snapshot.expenses, focusYear, "omzet"),
+    [snapshot.income, snapshot.expenses, focusYear]
   );
   const yoyVisits = useMemo(
-    () => (showYoy ? buildVisitYoySeries(snapshot.visits, focusYear) : []),
-    [showYoy, snapshot.visits, focusYear]
+    () => buildVisitYoySeries(snapshot.visits, focusYear),
+    [snapshot.visits, focusYear]
   );
 
   function selectIncomeCategory(category: string | null) {
@@ -217,15 +226,13 @@ export function DashboardApp({ snapshot, userName }: { snapshot: SheetsSnapshot;
 
             <VisitTrendChart data={visitTrend} />
 
-            {showYoy && (
-              <YoyChart
-                data={yoyVisits}
-                year={focusYear}
-                kind="count"
-                title={`Perbandingan Tahunan (YoY) — ${focusYear} vs ${focusYear - 1}`}
-                description="Jumlah kunjungan bulan per bulan, dibandingkan dengan tahun sebelumnya."
-              />
-            )}
+            <YoyChart
+              data={yoyVisits}
+              year={focusYear}
+              kind="count"
+              title={`Perbandingan Tahunan (YoY) — ${focusYear} vs ${focusYear - 1}`}
+              description="Jumlah kunjungan bulan per bulan, dibandingkan dengan tahun sebelumnya."
+            />
 
             <div className="grid grid-cols-1 items-start gap-4 xl:grid-cols-2">
               <VisitBreakdownChart
@@ -308,14 +315,12 @@ export function DashboardApp({ snapshot, userName }: { snapshot: SheetsSnapshot;
               }
             />
 
-            {showYoy && (
-              <YoyChart
-                data={yoyFinance}
-                year={focusYear}
-                title={`Perbandingan Omzet Tahunan (YoY) — ${focusYear} vs ${focusYear - 1}`}
-                description="Omzet bulan per bulan, dibandingkan dengan tahun sebelumnya."
-              />
-            )}
+            <YoyChart
+              data={yoyFinance}
+              year={focusYear}
+              title={`Perbandingan Omzet Tahunan (YoY) — ${focusYear} vs ${focusYear - 1}`}
+              description="Omzet bulan per bulan, dibandingkan dengan tahun sebelumnya."
+            />
 
             {filters.compare !== "none" && (
               <ComparisonPanel kpis={kpis} currentLabel={range.label} previousLabel={range.prevLabel} />
@@ -336,6 +341,11 @@ export function DashboardApp({ snapshot, userName }: { snapshot: SheetsSnapshot;
         <footer className="pb-4 text-center text-xs text-muted-foreground">
           Data disinkronkan dari Google Sheets, diperbarui otomatis setiap ±15 menit. Terakhir diambil:{" "}
           {new Date(snapshot.fetchedAt).toLocaleString("id-ID")}.
+          {buildId && (
+            // Makes it possible to tell at a glance whether a browser is still
+            // showing a cached older build.
+            <span className="print-hidden"> · versi {buildId}</span>
+          )}
         </footer>
       </main>
     </div>

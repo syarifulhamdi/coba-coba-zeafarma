@@ -34,10 +34,10 @@ export interface ReportData {
 }
 
 function DeltaText({ comparison, invert = false }: { comparison: KpiComparison; invert?: boolean }) {
-  if (comparison.deltaPercent === null) return <span className="text-[8pt] text-slate-400">—</span>;
+  if (comparison.deltaPercent === null) return <span className="text-[7pt] text-slate-400">—</span>;
   const positive = invert ? comparison.deltaPercent <= 0 : comparison.deltaPercent >= 0;
   return (
-    <span className={`text-[8pt] font-semibold tabular-nums ${positive ? "text-emerald-600" : "text-red-600"}`}>
+    <span className={`text-[7pt] font-semibold tabular-nums ${positive ? "text-emerald-600" : "text-red-600"}`}>
       {formatPercent(comparison.deltaPercent)}
     </span>
   );
@@ -55,9 +55,9 @@ function Metric({
   invert?: boolean;
 }) {
   return (
-    <div className="rounded-md border border-slate-200 bg-slate-50/60 px-2.5 py-2">
+    <div className="rounded-md border border-slate-200 bg-slate-50/60 px-2.5 py-1.5">
       <p className="text-[7pt] uppercase tracking-wide text-slate-500">{label}</p>
-      <p className="mt-1 text-[12pt] font-semibold leading-none tabular-nums text-slate-900">{value}</p>
+      <p className="mt-1 text-[11pt] font-semibold leading-none tabular-nums text-slate-900">{value}</p>
       <p className="mt-1 leading-none">
         <DeltaText comparison={comparison} invert={invert} />
       </p>
@@ -67,7 +67,7 @@ function Metric({
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="mb-1.5 border-b border-slate-300 pb-1 text-[8.5pt] font-bold uppercase tracking-wide text-slate-700">
+    <h2 className="mb-1 border-b border-slate-300 pb-0.5 text-[7.5pt] font-bold uppercase tracking-wide text-slate-700">
       {children}
     </h2>
   );
@@ -85,7 +85,7 @@ function RankedList({
   max?: number;
 }) {
   if (items.length === 0) {
-    return <p className="py-1.5 text-[8pt] italic text-slate-400">{emptyLabel}</p>;
+    return <p className="py-1 text-[7pt] italic text-slate-400">{emptyLabel}</p>;
   }
   const shown = items.slice(0, max);
   const rest = items.slice(max);
@@ -93,18 +93,18 @@ function RankedList({
   const restShare = rest.reduce((acc, i) => acc + i.share, 0);
 
   return (
-    <table className="w-full border-collapse text-[8pt]">
+    <table className="w-full border-collapse text-[7.5pt]">
       <tbody>
         {shown.map((item) => (
           <tr key={item.label} className="border-b border-slate-100 last:border-0">
-            <td className="w-2 py-[3px] pr-1 align-middle">
+            <td className="w-2 py-[2px] pr-1 align-middle">
               <span className="block h-1.5 w-1.5 rounded-full" style={{ background: item.color }} />
             </td>
-            <td className="py-[3px] pr-1 align-middle text-slate-700">{item.label}</td>
-            <td className="py-[3px] pr-1 text-right align-middle tabular-nums font-medium text-slate-900">
+            <td className="py-[2px] pr-1 align-middle text-slate-700">{item.label}</td>
+            <td className="py-[2px] pr-1 text-right align-middle tabular-nums font-medium text-slate-900">
               {format(item.total)}
             </td>
-            <td className="w-8 py-[3px] text-right align-middle tabular-nums text-slate-500">
+            <td className="w-8 py-[2px] text-right align-middle tabular-nums text-slate-500">
               {(item.share * 100).toFixed(0)}%
             </td>
           </tr>
@@ -112,9 +112,9 @@ function RankedList({
         {rest.length > 0 && (
           <tr className="text-slate-500">
             <td />
-            <td className="py-[3px] pr-1 italic">Lainnya ({rest.length})</td>
-            <td className="py-[3px] pr-1 text-right tabular-nums">{format(restTotal)}</td>
-            <td className="py-[3px] text-right tabular-nums">{(restShare * 100).toFixed(0)}%</td>
+            <td className="py-[2px] pr-1 italic">Lainnya ({rest.length})</td>
+            <td className="py-[2px] pr-1 text-right tabular-nums">{format(restTotal)}</td>
+            <td className="py-[2px] text-right tabular-nums">{(restShare * 100).toFixed(0)}%</td>
           </tr>
         )}
       </tbody>
@@ -155,9 +155,9 @@ export function ReportSheet({ data }: { data: ReportData }) {
           sized in points so the on-screen preview matches the printed page. */}
       <div className="mx-auto my-4 w-[190mm] bg-white p-0 text-slate-900 shadow-lg print:m-0 print:w-auto print:shadow-none">
         <header className="flex items-start justify-between gap-4 border-b-2 border-[#0d4a7d] pb-2">
-          <Image src="/zea-logo.jpg" alt="ZEA Medika Farma" width={1284} height={293} className="h-9 w-auto" priority />
+          <Image src="/zea-logo.jpg" alt="ZEA Medika Farma" width={1284} height={293} className="h-8 w-auto" priority />
           <div className="text-right">
-            <p className="text-[12pt] font-bold leading-tight text-[#0d4a7d]">Laporan Kinerja</p>
+            <p className="text-[11pt] font-bold leading-tight text-[#0d4a7d]">Laporan Kinerja</p>
             <p className="text-[9pt] leading-tight text-slate-600">Periode {data.periodLabel}</p>
             <p className="text-[7pt] leading-tight text-slate-400">
               Pembanding: {data.compareLabel} · Dicetak {new Date(data.generatedAt).toLocaleDateString("id-ID")}
@@ -165,7 +165,7 @@ export function ReportSheet({ data }: { data: ReportData }) {
           </div>
         </header>
 
-        <section className="mt-3">
+        <section className="mt-2.5">
           <SectionTitle>Ringkasan Keuangan</SectionTitle>
           <div className="grid grid-cols-4 gap-2">
             <Metric label="Omzet" value={formatCurrency(data.kpis.omzet.current)} comparison={data.kpis.omzet} />
@@ -188,7 +188,7 @@ export function ReportSheet({ data }: { data: ReportData }) {
           </div>
         </section>
 
-        <section className="mt-3">
+        <section className="mt-2.5">
           <SectionTitle>Ringkasan Kunjungan Pasien</SectionTitle>
           <div className="grid grid-cols-4 gap-2">
             <Metric
@@ -214,10 +214,10 @@ export function ReportSheet({ data }: { data: ReportData }) {
           </div>
         </section>
 
-        <section className="mt-3 grid grid-cols-2 gap-4">
+        <section className="mt-2.5 grid grid-cols-2 gap-3.5">
           <div>
             <SectionTitle>Tren Keuangan (6 Bulan)</SectionTitle>
-            <ResponsiveContainer width="100%" height={132}>
+            <ResponsiveContainer width="100%" height={108}>
               <ComposedChart data={trend} margin={{ top: 2, right: 2, left: 0, bottom: 0 }} barCategoryGap="26%">
                 <XAxis dataKey="label" stroke="#94a3b8" fontSize={7} tickLine={false} axisLine={false} interval={0} />
                 <YAxis
@@ -251,7 +251,7 @@ export function ReportSheet({ data }: { data: ReportData }) {
             <SectionTitle>Tren Kunjungan (6 Bulan)</SectionTitle>
             {data.hasVisitData ? (
               <>
-                <ResponsiveContainer width="100%" height={132}>
+                <ResponsiveContainer width="100%" height={108}>
                   <BarChart data={visitTrend} margin={{ top: 2, right: 2, left: 0, bottom: 0 }} barCategoryGap="26%">
                     <XAxis dataKey="label" stroke="#94a3b8" fontSize={7} tickLine={false} axisLine={false} interval={0} />
                     <YAxis stroke="#94a3b8" fontSize={7} tickLine={false} axisLine={false} width={26} allowDecimals={false} />
@@ -272,12 +272,12 @@ export function ReportSheet({ data }: { data: ReportData }) {
                 </p>
               </>
             ) : (
-              <p className="py-10 text-center text-[8pt] italic text-slate-400">Tidak ada data kunjungan.</p>
+              <p className="py-8 text-center text-[7.5pt] italic text-slate-400">Tidak ada data kunjungan.</p>
             )}
           </div>
         </section>
 
-        <section className="mt-3 grid grid-cols-2 gap-4">
+        <section className="mt-2.5 grid grid-cols-2 gap-3.5">
           <div>
             <SectionTitle>Omzet per Kategori</SectionTitle>
             <RankedList
@@ -294,7 +294,7 @@ export function ReportSheet({ data }: { data: ReportData }) {
           </div>
         </section>
 
-        <section className="mt-3 grid grid-cols-3 gap-4">
+        <section className="mt-2.5 grid grid-cols-3 gap-3.5">
           <div>
             <SectionTitle>Jenis Layanan</SectionTitle>
             <RankedList items={data.services} format={formatNumber} max={4} />
@@ -309,7 +309,7 @@ export function ReportSheet({ data }: { data: ReportData }) {
           </div>
         </section>
 
-        <footer className="mt-4 border-t border-slate-200 pt-1.5 text-[6.5pt] text-slate-400">
+        <footer className="mt-3 border-t border-slate-200 pt-1.5 text-[6.5pt] text-slate-400">
           ZEA Medika Farma — laporan internal. Data bersumber dari Google Sheets &quot;Smart Finance ZMF&quot;, dibuat
           otomatis oleh dashboard pada {new Date(data.generatedAt).toLocaleString("id-ID")}.
         </footer>

@@ -23,10 +23,12 @@ async function currentUserName(): Promise<string> {
 
 export default async function DashboardPage() {
   const [snapshot, userName] = await Promise.all([getSnapshot(), currentUserName()]);
+  // Short commit marker, so a stale cached build is obvious from the footer.
+  const buildId = process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7);
 
   return (
     <Suspense fallback={<div className="p-8 text-sm text-muted-foreground">Memuat dashboard...</div>}>
-      <DashboardApp snapshot={snapshot} userName={userName} />
+      <DashboardApp snapshot={snapshot} userName={userName} buildId={buildId} />
     </Suspense>
   );
 }

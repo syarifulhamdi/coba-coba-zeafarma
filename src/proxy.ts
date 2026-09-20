@@ -1,11 +1,11 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { SESSION_COOKIE_NAME, verifySessionToken } from "@/lib/auth";
 
-// The logo is the one asset that must be reachable without a session: it is
-// shown on the login page itself, and Next's image optimizer fetches it over
-// HTTP, so gating it would make the optimizer receive a redirect instead of
-// an image. No business data is exposed by it.
-const PUBLIC_PATHS = ["/login", "/api/auth/login", "/zea-logo.jpg"];
+// The logos are the only assets that must be reachable without a session: they
+// are shown on the login page itself, and Next's image optimizer fetches them
+// over HTTP, so gating them would make the optimizer receive a redirect
+// instead of an image. No business data is exposed by them.
+const PUBLIC_PATHS = ["/login", "/api/auth/login", "/zea-logo.jpg", "/zea-logo-white.png"];
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;

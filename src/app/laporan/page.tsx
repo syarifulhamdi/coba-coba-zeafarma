@@ -20,6 +20,12 @@ import { ReportSheet, type ReportData } from "@/components/report/report-sheet";
 
 export const dynamic = "force-dynamic";
 
+// Browsers name the "Save as PDF" file after the page title, so this is what
+// the downloaded report ends up being called.
+export const metadata = {
+  title: "Laporan Kinerja — ZEA Medika Farma",
+};
+
 export default async function ReportPage({
   searchParams,
 }: {

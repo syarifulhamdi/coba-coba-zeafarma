@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, Printer } from "lucide-react";
-import { Bar, BarChart, CartesianGrid, LabelList, ResponsiveContainer, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, LabelList, XAxis, YAxis } from "recharts";
 import { SEMANTIC_COLORS, VISIT_PAIR_COLORS } from "@/lib/colors";
 import { formatCurrency, formatCurrencyCompact, formatNumber, formatPercent } from "@/lib/utils";
 import type {
@@ -34,6 +34,10 @@ export interface ReportData {
 }
 
 const NAVY = "#0d4a7d";
+
+// Chart column is 108mm wide; at the CSS reference of 96dpi that is 408px.
+// Fixed rather than responsive on purpose — see the chart call sites.
+const CHART_W = 408;
 
 /* ---------- small building blocks ---------- */
 
@@ -245,11 +249,10 @@ export function ReportSheet({ data }: { data: ReportData }) {
             />
           </div>
 
-          <div className="mt-3 grid grid-cols-[1.25fr_1fr] gap-5">
-            <div>
+          <div className="mt-3 flex gap-[6mm]">
+            <div className="w-[108mm] shrink-0">
               <BlockTitle>Tren Omzet &amp; Pengeluaran — 6 bulan</BlockTitle>
-              <ResponsiveContainer width="100%" height={112}>
-                <BarChart data={trend} margin={{ top: 12, right: 2, left: 0, bottom: 0 }} barCategoryGap="24%">
+              <BarChart width={CHART_W} height={112} data={trend} margin={{ top: 12, right: 2, left: 0, bottom: 0 }} barCategoryGap="24%">
                   <CartesianGrid vertical={false} stroke="#e2e8f0" strokeDasharray="2 2" />
                   <XAxis dataKey="label" interval={0} {...AXIS} />
                   <YAxis tickFormatter={(v) => formatCurrencyCompact(v)} width={40} {...AXIS} />
@@ -266,15 +269,14 @@ export function ReportSheet({ data }: { data: ReportData }) {
                     />
                   </Bar>
                   <Bar dataKey="expense" fill={SEMANTIC_COLORS.expense.light} radius={[2, 2, 0, 0]} maxBarSize={12} isAnimationActive={false} />
-                </BarChart>
-              </ResponsiveContainer>
+              </BarChart>
               <p className="mt-1 flex flex-wrap gap-2.5 text-[6pt] text-slate-500">
                 <LegendDot color={SEMANTIC_COLORS.income.light} label="Omzet (berlabel)" />
                 <LegendDot color={SEMANTIC_COLORS.expense.light} label="Pengeluaran" />
               </p>
             </div>
 
-            <div className="flex flex-col gap-2.5">
+            <div className="flex min-w-0 flex-1 flex-col gap-2.5">
               <div>
                 <BlockTitle>Omzet per kategori</BlockTitle>
                 <RankedList
@@ -338,11 +340,10 @@ export function ReportSheet({ data }: { data: ReportData }) {
                 />
               </div>
 
-              <div className="mt-3 grid grid-cols-[1.25fr_1fr] gap-5">
-                <div>
+              <div className="mt-3 flex gap-[6mm]">
+                <div className="w-[108mm] shrink-0">
                   <BlockTitle>Tren kunjungan — 6 bulan</BlockTitle>
-                  <ResponsiveContainer width="100%" height={112}>
-                    <BarChart data={visitTrend} margin={{ top: 12, right: 2, left: 0, bottom: 0 }} barCategoryGap="24%">
+                  <BarChart width={CHART_W} height={112} data={visitTrend} margin={{ top: 12, right: 2, left: 0, bottom: 0 }} barCategoryGap="24%">
                       <CartesianGrid vertical={false} stroke="#e2e8f0" strokeDasharray="2 2" />
                       <XAxis dataKey="label" interval={0} {...AXIS} />
                       <YAxis width={22} allowDecimals={false} {...AXIS} />
@@ -359,8 +360,7 @@ export function ReportSheet({ data }: { data: ReportData }) {
                           formatter={(v: unknown) => formatNumber(Number(v) || 0)}
                         />
                       </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
+                  </BarChart>
                   <p className="mt-1 flex flex-wrap gap-2.5 text-[6pt] text-slate-500">
                     <LegendDot color={VISIT_PAIR_COLORS.primary.light} label="Pasien Baru" />
                     <LegendDot color={VISIT_PAIR_COLORS.secondary.light} label="Pasien Lama" />
@@ -368,7 +368,7 @@ export function ReportSheet({ data }: { data: ReportData }) {
                   </p>
                 </div>
 
-                <div className="flex flex-col gap-2.5">
+                <div className="flex min-w-0 flex-1 flex-col gap-2.5">
                   <div>
                     <BlockTitle>Jenis layanan</BlockTitle>
                     <RankedList items={data.services} format={formatNumber} max={4} />
